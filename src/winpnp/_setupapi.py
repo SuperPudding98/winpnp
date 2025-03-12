@@ -1,6 +1,28 @@
-from ctypes import Structure, c_ubyte, c_uint16, c_uint32
+from ctypes import (
+    POINTER,
+    Structure,
+    c_bool,
+    c_ubyte,
+    c_uint16,
+    c_uint32,
+    c_void_p,
+    c_wchar_p,
+    windll,
+)
 from enum import IntFlag
 from uuid import UUID
+
+INVALID_HANDLE_VALUE = -1
+
+HDEVINFO = c_void_p
+
+
+class DIGCF(IntFlag):
+    DEFAULT = 0x00000001
+    PRESENT = 0x00000002
+    ALLCLASSES = 0x00000004
+    PROFILE = 0x00000008
+    DEVICEINTERFACE = 0x00000010
 
 
 class GUID(Structure):
@@ -23,6 +45,15 @@ class GUID(Structure):
 
     def to_uuid(self) -> UUID:
         return UUID(bytes_le=bytes(self))
+
+
+class SP_DEVINFO_DATA(Structure):
+    _fields_ = (
+        ("cbSize", c_uint32),
+        ("ClassGuid", GUID),
+        ("DevInst", c_uint32),
+        ("Reserved", c_void_p),
+    )
 
 
 class DEVPROPKEY(Structure):
@@ -67,3 +98,66 @@ class DEVPROP_TYPE(IntFlag):
     ERROR = 0x00000017  # 32-bit Win32 system error code
     NTSTATUS = 0x00000018  # 32-bit NTSTATUS code
     STRING_INDIRECT = 0x00000019  # string resource (@[path\]<dllname>,-<strId>)
+
+
+SetupDiCreateDeviceInfoList = windll.setupapi.SetupDiCreateDeviceInfoList
+SetupDiCreateDeviceInfoList.restype = HDEVINFO
+SetupDiCreateDeviceInfoList.argtypes = (
+    POINTER(GUID),  # [in, optional] ClassGuid
+    c_void_p,  # [in, optional] hwndParent
+)
+
+SetupDiDestroyDeviceInfoList = windll.setupapi.SetupDiDestroyDeviceInfoList
+SetupDiDestroyDeviceInfoList.restype = c_bool
+SetupDiDestroyDeviceInfoList.argtypes = (HDEVINFO,)  # [in] DeviceInfoSet
+
+SetupDiGetClassDevsW = windll.setupapi.SetupDiGetClassDevsW
+SetupDiGetClassDevsW.restype = HDEVINFO
+SetupDiGetClassDevsW.argtypes = (
+    POINTER(GUID),  # [in, optional] ClassGuid
+    c_wchar_p,  # [in, optional] Enumerator
+    c_void_p,  # [in, optional] hwndParent
+    c_uint32,  # [in] Flags
+)
+
+SetupDiEnumDeviceInfo = windll.setupapi.SetupDiEnumDeviceInfo
+SetupDiEnumDeviceInfo.restype = c_bool
+SetupDiEnumDeviceInfo.argtypes = (
+    HDEVINFO,  # [in] DeviceInfoSet
+    c_uint32,  # [in] MemberIndex
+    POINTER(SP_DEVINFO_DATA),  # [out] DeviceInfoData
+)
+
+SetupDiOpenDeviceInfoW = windll.setupapi.SetupDiOpenDeviceInfoW
+SetupDiOpenDeviceInfoW.restype = c_bool
+SetupDiOpenDeviceInfoW.argtypes = (
+    HDEVINFO,  # [in] DeviceInfoSet
+    c_wchar_p,  # [in] DeviceInstanceId
+    c_void_p,  # [in, optional] hwndParent
+    c_uint32,  # [in] OpenFlags
+    POINTER(SP_DEVINFO_DATA),  # [out, optional] DeviceInfoData
+)
+
+SetupDiGetDevicePropertyW = windll.setupapi.SetupDiGetDevicePropertyW
+SetupDiGetDevicePropertyW.restype = c_bool
+SetupDiGetDevicePropertyW.argtypes = (
+    HDEVINFO,  # [in] DeviceInfoSet
+    POINTER(SP_DEVINFO_DATA),  # [in] DeviceInfoData
+    POINTER(DEVPROPKEY),  # [in] PropertyKey
+    POINTER(c_uint32),  # [out] PropertyType
+    POINTER(c_ubyte),  # [out, optional] PropertyBuffer
+    c_uint32,  # [in] PropertyBufferSize
+    POINTER(c_uint32),  # [out, optional] RequiredSize
+    c_uint32,  # [in] Flags
+)
+
+SetupDiGetDevicePropertyKeys = windll.setupapi.SetupDiGetDevicePropertyKeys
+SetupDiGetDevicePropertyKeys.restype = c_bool
+SetupDiGetDevicePropertyKeys.argtypes = (
+    HDEVINFO,  # [in] DeviceInfoSet
+    POINTER(SP_DEVINFO_DATA),  # [in] DeviceInfoData
+    POINTER(DEVPROPKEY),  # [out, optional] PropertyKeyArray
+    c_uint32,  # [in] PropertyKeyCount
+    POINTER(c_uint32),  # [out, optional] RequiredPropertyKeyCount
+    c_uint32,  # [in] Flags
+)
