@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "winpnp"
+version = "0.0.1"
+authors = [
+    { name = "Supper Pudding", email = "31290828+SuperPudding98@users.noreply.github.com" },
+]
+description = "A package for interacting with Windows Plug and Play (PnP) entities"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.9"
+keywords = ["pnp", "setupapi", "setupdi", "Windows device", "device manager"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: Microsoft :: Windows",
+    "Environment :: Win32 (MS Windows)",
+    "Topic :: System :: Hardware",
+    "Typing :: Typed",
+]
+
+dependencies = ["more-itertools>=10.2.0,<11"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2.1,<9", "pytest-cases>=3.8.6,<4"]
+deploy = ["build>=1.2.2,<2", "twine>=6.1.0,<7"]
+
+[project.urls]
+Homepage = "https://github.com/SuperPudding98/winpnp"
+Issues = "https://github.com/SuperPudding98/winpnp/issues"
