@@ -25,6 +25,11 @@ class DIGCF(IntFlag):
     DEVICEINTERFACE = 0x00000010
 
 
+class DICLASSPROP(IntFlag):
+    INSTALLER = 0x00000001
+    INTERFACE = 0x00000002
+
+
 class GUID(Structure):
     _fields_ = (
         ("Data1", c_uint32),
@@ -159,5 +164,45 @@ SetupDiGetDevicePropertyKeys.argtypes = (
     POINTER(DEVPROPKEY),  # [out, optional] PropertyKeyArray
     c_uint32,  # [in] PropertyKeyCount
     POINTER(c_uint32),  # [out, optional] RequiredPropertyKeyCount
+    c_uint32,  # [in] Flags
+)
+
+SetupDiBuildClassInfoList = windll.setupapi.SetupDiBuildClassInfoList
+SetupDiBuildClassInfoList.restype = c_bool
+SetupDiBuildClassInfoList.argtypes = (
+    c_uint32,  # [in] Flags
+    POINTER(GUID),  # [out, optional] ClassGuidList
+    c_uint32,  # [in] ClassGuidListSize
+    POINTER(c_uint32),  # [out] RequiredSize
+)
+
+SetupDiClassGuidsFromNameW = windll.setupapi.SetupDiClassGuidsFromNameW
+SetupDiClassGuidsFromNameW.restype = c_bool
+SetupDiClassGuidsFromNameW.argtypes = (
+    c_wchar_p,  # [in] ClassName,
+    POINTER(GUID),  # [out] ClassGuidList,
+    c_uint32,  # [in]  ClassGuidListSize,
+    POINTER(c_uint32),  # [out] RequiredSize
+)
+
+SetupDiGetClassPropertyW = windll.setupapi.SetupDiGetClassPropertyW
+SetupDiGetClassPropertyW.restype = c_bool
+SetupDiGetClassPropertyW.argtypes = (
+    POINTER(GUID),  # [in] ClassGuid,
+    POINTER(DEVPROPKEY),  # [in] PropertyKey,
+    POINTER(c_uint32),  # [out] PropertyType,
+    POINTER(c_ubyte),  # [out] PropertyBuffer,
+    c_uint32,  # [in] PropertyBufferSize,
+    POINTER(c_uint32),  # [out, optional] RequiredSize,
+    c_uint32,  # [in] Flags
+)
+
+SetupDiGetClassPropertyKeys = windll.setupapi.SetupDiGetClassPropertyKeys
+SetupDiGetClassPropertyKeys.restype = c_bool
+SetupDiGetClassPropertyKeys.argtypes = (
+    POINTER(GUID),  # [in] ClassGuid,
+    POINTER(DEVPROPKEY),  # [out, optional] PropertyKeyArray,
+    c_uint32,  # [in] PropertyKeyCount,
+    POINTER(c_uint32),  # [out, optional] RequiredPropertyKeyCount,
     c_uint32,  # [in] Flags
 )

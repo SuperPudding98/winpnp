@@ -1,1 +1,1 @@
-from . import device
+from . import device, setup_class

@@ -2,8 +2,9 @@
 
 This is a package for interacting with Windows Plug and Play (PnP) entities (devices, setup classes, etc.)
 
-It can be used to query properties of PnP devices using the `winpnp.info.device.DeviceInfo` class.<br/>
-Instances of this class can be used as mappings, with keys of type `winpnp.properties.pnp_property.PnpPropertyKey`.<br/>
+It can be used to query properties of PnP devices using the `winpnp.info.device.DeviceInfo` class,<br/>
+and to query properties of PnP setup classes using the `winpnp.info.setup_class.SetupClassInfo` class.<br/>
+Instances of these classes can be used as mappings, with keys of type `winpnp.properties.pnp_property.PnpPropertyKey`.<br/>
 For your convenience, commonly used property keys are defined in `winpnp.properties.keys`.
 
 Here is an example usage:
