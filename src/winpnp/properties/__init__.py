@@ -1,1 +1,1 @@
-from . import kinds, pnp_property
+from . import keys, kinds, pnp_property
