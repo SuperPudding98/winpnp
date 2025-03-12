@@ -26,6 +26,7 @@ dependencies = ["more-itertools>=10.2.0,<11"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.2.1,<9", "pytest-cases>=3.8.6,<4"]
+deploy = ["build>=1.2.2,<2", "twine>=6.1.0,<7"]
 
 [project.urls]
 Homepage = "https://github.com/SuperPudding98/winpnp"
