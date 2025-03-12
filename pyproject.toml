@@ -22,6 +22,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+dependencies = ["more-itertools>=10.2.0,<11"]
+
 [project.urls]
 Homepage = "https://github.com/SuperPudding98/winpnp"
 Issues = "https://github.com/SuperPudding98/winpnp/issues"
