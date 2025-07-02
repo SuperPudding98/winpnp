@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "winpnp"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
     { name = "Supper Pudding", email = "31290828+SuperPudding98@users.noreply.github.com" },
 ]
@@ -22,7 +22,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 
-dependencies = ["more-itertools>=10.2.0,<11"]
+dependencies = ["more-itertools>=10.2.0,<11", "pywin32>=306"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.2.1,<9", "pytest-cases>=3.8.6,<4"]
