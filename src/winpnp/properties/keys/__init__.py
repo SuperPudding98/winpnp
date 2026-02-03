@@ -4,6 +4,7 @@ from winpnp.properties import kinds
 from winpnp.properties.pnp_property import PnpPropertyKey
 
 from . import (
+    bluetooth,
     dev_query,
     device,
     device_class,
