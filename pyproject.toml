@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "winpnp"
-version = "0.0.2"
+version = "0.1.0"
 authors = [
     { name = "Supper Pudding", email = "31290828+SuperPudding98@users.noreply.github.com" },
 ]
