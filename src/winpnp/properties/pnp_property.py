@@ -15,6 +15,7 @@ class PnpPropertyType(Generic[T]):
     """
 
     _DERIVED_DATA: ClassVar[dict[int, tuple[str, Callable[[bytes], Any]]]] = {}
+    _NAME_TO_ID: ClassVar[dict[str, int]] = {}
 
     type_id: int
     name: Optional[str] = field(compare=False)
@@ -48,6 +49,7 @@ class PnpPropertyType(Generic[T]):
             )
 
         PnpPropertyType._DERIVED_DATA[kind.type_id] = (kind.name, kind._decoder)
+        PnpPropertyType._NAME_TO_ID[kind.name] = kind.type_id
 
     @staticmethod
     def register_new(
@@ -62,6 +64,14 @@ class PnpPropertyType(Generic[T]):
         PnpPropertyType.register(kind)
         return kind
 
+    @staticmethod
+    def from_name(name: str) -> Optional["PnpPropertyType[U]"]:
+        type_id = PnpPropertyType._NAME_TO_ID.get(name)
+        if type_id is None:
+            return None
+
+        return PnpPropertyType(type_id)
+
     def decode(self, data: bytes) -> T:
         """
         Decodes raw bytes to the actual python type that this `PnpPropertyType` represents.
@@ -69,13 +79,16 @@ class PnpPropertyType(Generic[T]):
         return self._decoder(data)
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class PnpPropertyKey(Generic[T]):
     """
     A key that specifies a PnP property. This is an abstraction over the Windows DEVPROPKEY struct. Can be used as key for `__getitem__` of various winpnp classes.
     """
 
-    _NAMES: ClassVar[dict[tuple[UUID, int], str]] = {}
+    _DERIVED_DATA: ClassVar[
+        dict[tuple[UUID, int], tuple[str, Optional[tuple[PnpPropertyType[Any], ...]]]]
+    ] = {}
+    _NAME_TO_ID: ClassVar[dict[str, tuple[UUID, int]]] = {}
 
     category: UUID
     property_id: int
@@ -89,15 +102,25 @@ class PnpPropertyKey(Generic[T]):
         name: Optional[str] = None,
         allowed_types: Optional[Iterable[PnpPropertyType[T]]] = None,
     ) -> None:
-        self.category = category
-        self.property_id = property_id
-        self.name = (
-            name if name is not None else self._NAMES.get((category, property_id))
+        # Intentionally not setting allowed_types from derived data to allow creating a PnpPropertyKey with registered id but without type limitations
+        derived_name, _ = self._DERIVED_DATA.get((category, property_id), (None, None))
+
+        # Using object.__setattr__ because the class is frozen
+        object.__setattr__(self, "category", category)
+        object.__setattr__(self, "property_id", property_id)
+        object.__setattr__(
+            self,
+            "name",
+            name if name is not None else derived_name,
         )
-        self.allowed_types = (
-            {kind.type_id: kind for kind in allowed_types}
-            if allowed_types is not None
-            else None
+        object.__setattr__(
+            self,
+            "allowed_types",
+            (
+                {kind.type_id: kind for kind in allowed_types}
+                if allowed_types is not None
+                else None
+            ),
         )
 
     @staticmethod
@@ -109,12 +132,17 @@ class PnpPropertyKey(Generic[T]):
             raise ValueError(f"Cannot register {repr(key)} because it is unnamed.")
 
         _id = (key.category, key.property_id)
-        if _id in PnpPropertyKey._NAMES:
+        if _id in PnpPropertyKey._DERIVED_DATA:
             raise ValueError(
-                f"Cannot register {repr(key)} because its (category, property_id) pair is already registered with name {repr(PnpPropertyKey._NAMES[_id])}"
+                f"Cannot register {repr(key)} because its (category, property_id) pair is already registered with name {repr(PnpPropertyKey._DERIVED_DATA[_id][0])}"
             )
 
-        PnpPropertyKey._NAMES[_id] = key.name
+        allowed_types = (
+            tuple(key.allowed_types.values()) if key.allowed_types is not None else None
+        )
+
+        PnpPropertyKey._DERIVED_DATA[_id] = (key.name, allowed_types)
+        PnpPropertyKey._NAME_TO_ID[key.name] = _id
 
     @staticmethod
     def register_new(
@@ -129,6 +157,15 @@ class PnpPropertyKey(Generic[T]):
         key = PnpPropertyKey(category, property_id, name, allowed_types)
         PnpPropertyKey.register(key)
         return key
+
+    @staticmethod
+    def from_name(name: str) -> Optional["PnpPropertyKey[U]"]:
+        _id = PnpPropertyKey._NAME_TO_ID.get(name)
+        if _id is None:
+            return None
+
+        _, allowed_types = PnpPropertyKey._DERIVED_DATA.get(_id, (None, None))
+        return PnpPropertyKey(*_id, name, allowed_types)
 
 
 @dataclass()
