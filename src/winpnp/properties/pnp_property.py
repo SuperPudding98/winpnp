@@ -69,7 +69,7 @@ class PnpPropertyType(Generic[T]):
         return self._decoder(data)
 
 
-@dataclass(init=False)
+@dataclass(init=False, frozen=True)
 class PnpPropertyKey(Generic[T]):
     """
     A key that specifies a PnP property. This is an abstraction over the Windows DEVPROPKEY struct. Can be used as key for `__getitem__` of various winpnp classes.
@@ -89,15 +89,22 @@ class PnpPropertyKey(Generic[T]):
         name: Optional[str] = None,
         allowed_types: Optional[Iterable[PnpPropertyType[T]]] = None,
     ) -> None:
-        self.category = category
-        self.property_id = property_id
-        self.name = (
-            name if name is not None else self._NAMES.get((category, property_id))
+        # Using object.__setattr__ because the class is frozen
+        object.__setattr__(self, "category", category)
+        object.__setattr__(self, "property_id", property_id)
+        object.__setattr__(
+            self,
+            "name",
+            name if name is not None else self._NAMES.get((category, property_id)),
         )
-        self.allowed_types = (
-            {kind.type_id: kind for kind in allowed_types}
-            if allowed_types is not None
-            else None
+        object.__setattr__(
+            self,
+            "allowed_types",
+            (
+                {kind.type_id: kind for kind in allowed_types}
+                if allowed_types is not None
+                else None
+            ),
         )
 
     @staticmethod
